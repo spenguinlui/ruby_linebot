@@ -13,6 +13,11 @@ gem 'pg'
 
 # line-bot-api
 gem 'line-bot-api'
+
+# rate
+gem 'nokogiri'
+gem 'rest-client'
+
 # Use Puma as the app server
 gem 'puma', '~> 4.1'
 # Use SCSS for stylesheets

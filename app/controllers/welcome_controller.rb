@@ -15,12 +15,43 @@ class WelcomeController < ApplicationController
     reply_token = params['events'][0]['replyToken']
 
     # 回覆內容
-    response_message = {
-      type: "text",
-      text: params["events"].first["message"]["text"]
-    }
+    if params["events"].first["message"]["text"].index('匯率').present?
+      response_message = {
+        type: "text",
+        text: get_rate
+      }
+    else
+      response_message = {
+        type: "text",
+        text: "聽不懂你在說什麼捏"
+        # text: params["events"].first["message"]["text"]
+      }
+    end
 
     # 回覆
     client.reply_message(reply_token, response_message)
+  end
+
+  def get_rate
+    # 獲得台銀匯率網站 html
+    htmlData = RestClient.get('https://rate.bot.com.tw/xrt').body
+    response = Nokogiri::HTML(htmlData)
+
+    # 每一列表格 (tr) 資料
+    tr = response.xpath('//table/tbody/tr')
+
+    # 抓出匯率資料
+    rate_data = []
+    tr.each do |t|
+      t_rate = {
+        'currency_name(幣別)': t.css('td[data-table="幣別"] div .print_show').text.strip,
+        'cash_buying(本行現金買入)': t.css('td[data-table="本行現金買入"]')[0].text,
+        'cash_selling(本行現金賣出)': t.css('td[data-table="本行現金賣出"]')[0].text,
+        'spot_buying(本行即期買入)': t.css('td[data-table="本行即期買入"]')[0].text,
+        'spot_selling(本行即期賣出)': t.css('td[data-table="本行即期賣出"]')[0].text
+      }
+      rate_data << t_rate
+    end
+    rate_data
   end
 end
