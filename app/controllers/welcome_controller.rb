@@ -1,8 +1,6 @@
 class WelcomeController < ApplicationController
   protect_from_forgery with: :null_session
   def webhook
-    puts params["events"].first["message"]["text"]
-
     # 物件初始化
     client = Line::Bot::Client.new { |config|
       config.channel_secret = ENV['line_channel_secret']
@@ -15,10 +13,11 @@ class WelcomeController < ApplicationController
     reply_token = params['events'][0]['replyToken']
 
     # 回覆內容
-    if params["events"].first["message"]["text"].index('匯率').present?
+    if params["events"].first["message"]["text"].index('匯率') != nil
+      text = get_rate()
       response_message = {
         type: "text",
-        text: get_rate
+        text: text
       }
     else
       response_message = {
