@@ -14,10 +14,27 @@ class WelcomeController < ApplicationController
 
     # 回覆內容
     if params["events"].first["message"]["text"].index('匯率') != nil
-      text = get_rate()
+      htmlData = RestClient.get('https://rate.bot.com.tw/xrt').body
+      response = Nokogiri::HTML(htmlData)
+
+      # 每一列表格 (tr) 資料
+      tr = response.xpath('//table/tbody/tr')
+
+      # 抓出匯率資料
+      rate_data = []
+      tr.each do |t|
+        t_rate = {
+          'currency_name(幣別)': t.css('td[data-table="幣別"] div .print_show').text.strip,
+          'cash_buying(本行現金買入)': t.css('td[data-table="本行現金買入"]')[0].text,
+          'cash_selling(本行現金賣出)': t.css('td[data-table="本行現金賣出"]')[0].text,
+          'spot_buying(本行即期買入)': t.css('td[data-table="本行即期買入"]')[0].text,
+          'spot_selling(本行即期賣出)': t.css('td[data-table="本行即期賣出"]')[0].text
+        }
+        rate_data << t_rate
+      end
       response_message = {
         type: "text",
-        text: text
+        text: rate_data
       }
     else
       response_message = {
@@ -30,6 +47,8 @@ class WelcomeController < ApplicationController
     # 回覆
     client.reply_message(reply_token, response_message)
   end
+
+  private
 
   def get_rate
     # 獲得台銀匯率網站 html
