@@ -14,10 +14,10 @@ class WelcomeController < ApplicationController
 
     # 回覆內容
     if params["events"].first["message"]["text"].index('匯率') != nil
-      text = data_test()
+      text = get_rate()
       response_message = {
         type: "text",
-        text: text
+        text: text || '很可惜，沒抓到匯率'
       }
     else
       response_message = {
@@ -29,6 +29,7 @@ class WelcomeController < ApplicationController
 
     # 回覆
     client.reply_message(reply_token, response_message)
+    render json: response_message
   end
 
   private
@@ -53,10 +54,7 @@ class WelcomeController < ApplicationController
       }
       rate_data << t_rate
     end
-    rate_data
-  end
-
-  def data_test 
-    '我收到了'
+    # rate_data
+    '我是匯率'
   end
 end
